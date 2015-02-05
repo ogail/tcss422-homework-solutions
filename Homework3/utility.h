@@ -10,12 +10,6 @@ typedef unsigned char byte;
 
 extern int allocated_chunks;
 
-/* UTILITY MANAGEMENT APIs */
-
-void init_utility();
-
-void destroy_utility();
-
 /* MEMORY MANAGEMENT APIs */
 
 void * safe_malloc(int size);

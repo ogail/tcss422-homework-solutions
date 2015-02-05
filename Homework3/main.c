@@ -27,8 +27,6 @@ int main(int argc, char* argv[]) {
 		return (argc == 2 && strcmp(argv[1], "--help") == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 	}
 
-	init_utility();
-
 	// Ready to start retrieving and analyzing images.
 	int images;
 	image_info * results = analyze_images_in_directory(thread_limit, argv[2], &images);
@@ -42,7 +40,6 @@ int main(int argc, char* argv[]) {
 
 	// Verify that all allocated memory has been freed ahead
 	assert(allocated_chunks == 0);
-	destroy_utility();
 
 	return EXIT_SUCCESS;
 }

@@ -147,7 +147,6 @@ void load_image(const char * file_name) {
 	pthread_mutex_unlock(&images_mutex);
 }
 
-
 image_info get_max_rectangle(const bmp * image) {
 	int row = image->header.height;
 	int rowFrom, rowTo, columnFrom, columnTo;
@@ -174,10 +173,14 @@ image_info get_max_rectangle(const bmp * image) {
 
 					if (area > max) {
 						max = area;
-						analyzed_image.top_left_x = rowFrom;
-						analyzed_image.top_left_y = columnFrom;
-						analyzed_image.bottom_right_x = rowTo;
-						analyzed_image.bottom_right_y = columnTo;
+						analyzed_image.top_left_x = columnFrom;
+						analyzed_image.top_left_y = rowFrom;
+						analyzed_image.bottom_right_x = columnTo;
+						analyzed_image.bottom_right_y = rowTo;
+					}
+					else if(area == max && rowFrom == analyzed_image.top_left_y) {
+						analyzed_image.top_left_x = columnFrom;
+						analyzed_image.bottom_right_x = columnTo;
 					}
 				}
 			}

@@ -7,24 +7,22 @@
 #include "utility.h"
 
 #define MAX_LOG_LINE (512)
+#define ENABLE_LOG false
 
 int allocated_chunks = 0;
 bool logging_enabled;
+bool init = false;
 pthread_mutex_t memory_mutex;
 pthread_mutex_t logging_mutex;
 
-void init_utility() {
-	logging_enabled = true;
-	pthread_mutex_init(&memory_mutex, NULL);
-	pthread_mutex_init(&logging_mutex, NULL);
-}
-
-void destroy_utility() {
-	pthread_mutex_destroy(&memory_mutex);
-	pthread_mutex_destroy(&logging_mutex);
-}
-
 void * safe_malloc(int size) {
+	if (!init) {
+		init = true;
+		logging_enabled = ENABLE_LOG;
+		pthread_mutex_init(&memory_mutex, NULL);
+		pthread_mutex_init(&logging_mutex, NULL);
+	}
+
 	void * chunk = malloc(size);
 	if (chunk == NULL) {
 		printf("ERROR: memory allocation failed, exit\n");
@@ -44,6 +42,13 @@ void * safe_malloc(int size) {
 }
 
 void safe_free(void * chunk) {
+	if (!init) {
+		init = true;
+		logging_enabled = ENABLE_LOG;
+		pthread_mutex_init(&memory_mutex, NULL);
+		pthread_mutex_init(&logging_mutex, NULL);
+	}
+
 	if (chunk != NULL) {
 		free(chunk);
 		chunk = NULL;
@@ -74,6 +79,13 @@ void safe_fread(void * buffer, int size, FILE * stream) {
 }
 
 char * safe_strdup(const char * str) {
+	if (!init) {
+		init = true;
+		logging_enabled = ENABLE_LOG;
+		pthread_mutex_init(&memory_mutex, NULL);
+		pthread_mutex_init(&logging_mutex, NULL);
+	}
+
 	char * dup = strdup(str);
 	if (dup == NULL) {
 		printf("ERROR: duplicating string %s\n", str);
@@ -97,6 +109,13 @@ void safe_pthread_create(pthread_t * thread, const pthread_attr_t * attr, void *
 }
 
 void write_log2(const char * msg, ...) {
+	if (!init) {
+		init = true;
+		logging_enabled = ENABLE_LOG;
+		pthread_mutex_init(&memory_mutex, NULL);
+		pthread_mutex_init(&logging_mutex, NULL);
+	}
+
 	if (!logging_enabled) {
 		return;
 	}
@@ -118,7 +137,12 @@ void write_log2(const char * msg, ...) {
 }
 
 void write_log1(const char * func, const char * msg, ...) {
-	return;
+	if (!init) {
+		init = true;
+		logging_enabled = ENABLE_LOG;
+		pthread_mutex_init(&memory_mutex, NULL);
+		pthread_mutex_init(&logging_mutex, NULL);
+	}
 
 	if (!logging_enabled) {
 		return;
