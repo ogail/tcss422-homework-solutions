@@ -1,3 +1,9 @@
+#Homework specific files
+log.txt
+
+# Eclipse files
+*.stackdump
+
 # Windows image file caches
 Thumbs.db
 
