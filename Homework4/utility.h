@@ -2,6 +2,7 @@
 #define _UTILITY_H_
 
 #include <stdio.h>
+#include <time.h>
 
 #define true (1)
 #define false (0)
@@ -9,6 +10,7 @@
 
 typedef int bool;
 typedef unsigned char byte;
+typedef struct timespec time_spec;
 
 extern int allocated_chunks;
 

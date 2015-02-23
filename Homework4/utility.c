@@ -8,7 +8,7 @@
 #include "utility.h"
 
 #define MAX_LOG_LINE (512)
-#define ENABLE_LOG true
+#define ENABLE_LOG false
 
 int allocated_chunks = 0;
 bool logging_enabled;
@@ -172,12 +172,9 @@ void write_log1(const char * func, const char * msg, ...) {
 unsigned int get_bits(unsigned int n, unsigned int start, unsigned count) {
 	unsigned int result = 0;
 	int k = start;
-	int i, bit, bit_value;
-	for(i = 0; i < count; i++, k++) {
-		bit_value = pow(2, k);
-		bit = ((n >> k)  & 1);
-		result += bit * bit_value;
-		// result += ((n >> k)  & 1) * pow(2, k)
+	int i;
+	for (i = 0; i < count; i++, k++) {
+		result += ((n >> k)  & 1) * pow(2, i);
 	}
 
 	return result;

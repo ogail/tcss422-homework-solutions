@@ -26,7 +26,7 @@ typedef struct {
 typedef struct {
 	byte valid;
 	unsigned int physical_page;
-	time_t last_accessed;
+	time_spec last_accessed;
 } virtual_page;
 
 typedef struct {
@@ -50,6 +50,8 @@ typedef struct {
 os_memory_info info;
 
 void initialize_page_manager(memory_config mc);
+
+void destroy_page_manager();
 
 access_result access_memory(unsigned int pid, unsigned int virtual_address);
 

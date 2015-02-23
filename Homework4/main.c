@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "page_manager.h"
+#include "utility.h"
 
 struct access {
 	char done;
@@ -40,6 +41,8 @@ void run_simulation(struct sim simulation) {
 		access_result result = access_memory(acc.pid, acc.virtual_address);
 		printf("(%u, %11u) --> %10u  %s\n", acc.pid, acc.virtual_address, result.physical_address, result.page_fault ? "(page fault)" : "");
 	}
+
+	destroy_page_manager();
 }
 
 int main(int argc, char* argv[]) {
