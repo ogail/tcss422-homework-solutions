@@ -11,18 +11,18 @@ void initialize_page_manager(memory_config mc) {
 
 	info.physical_memory = pow(2, mc.physical_address_space);
 	info.virtual_memory = pow(2, mc.virtual_address_space);
-	info.page_size_in_bits = mc.page_size * BITS_PER_BYTE;
-	info.page_table_count = info.virtual_memory / info.page_size_in_bits;
+	info.page_size = mc.page_size;
+	info.page_table_count = info.virtual_memory / info.page_size;
 	info.virtual_page_number_bits_count = log2(info.page_table_count);
 	info.offset_bits_count = mc.virtual_address_space - info.virtual_page_number_bits_count;
 	info.free_list_index = 0;
-	info.free_list_count = info.physical_memory / info.page_size_in_bits;
+	info.free_list_count = info.physical_memory / info.page_size;
 	info.free_list = safe_malloc(info.free_list_count * sizeof(physical_page));
 
 	// calculate physical address for each physical page
 	for (i = 0; i < info.free_list_count; i++) {
-		info.free_list[i].start_address = i * info.page_size_in_bits;
-		info.free_list[i].end_address = info.free_list[i].start_address + (info.page_size_in_bits - 1);
+		info.free_list[i].start_address = i * info.page_size;
+		info.free_list[i].end_address = info.free_list[i].start_address + (info.page_size - 1);
 	}
 
 	// Verify that the physical page address for last page is correct
@@ -43,7 +43,7 @@ void initialize_page_manager(memory_config mc) {
 	LOG_MSG("%d physical address space", mc.physical_address_space);
 	LOG_MSG("%d virtual address space", mc.virtual_address_space);
 	LOG_MSG("%d processes", mc.processes);
-	LOG_MSG("%d page size in bytes and %d page size in bits", mc.page_size, info.page_size_in_bits);
+	LOG_MSG("%d page size in bytes and %d page size in bits", mc.page_size, info.page_size);
 
 	write_log2("system info:\n");
 	LOG_MSG("%d physical memory", info.physical_memory);
@@ -57,7 +57,7 @@ void initialize_page_manager(memory_config mc) {
 
 access_result access_memory(unsigned int pid, unsigned int virtual_address) {
 	access_result result;
-	unsigned int i, vpn, offset, lru_vpn, time_diff;
+	unsigned int i, vpn, offset, lru_vpn;
 	time_spec min_time;
 
 	assert(pid < config.processes);
@@ -71,7 +71,7 @@ access_result access_memory(unsigned int pid, unsigned int virtual_address) {
 	LOG_MSG("VPN %d and offset %d", vpn, offset);
 
 	assert(vpn < info.page_table_count);
-	assert(offset < info.page_size_in_bits);
+	assert(offset < info.page_size);
 	result.page_fault = !info.processes[pid].page_table[vpn].valid;
 
 	if (result.page_fault) {
@@ -79,17 +79,16 @@ access_result access_memory(unsigned int pid, unsigned int virtual_address) {
 			// a free physical page is available
 			result.physical_page_number = info.free_list_index++;
 		} else {
-			clock_gettime(CLOCK_MONOTONIC, &min_time);
+			time_now(&min_time);
 			lru_vpn = INT_MAX;
 			LOG_MSG("Finding LUR page for vpn %d with initial time microsec %d-%s", vpn, min_time.tv_nsec, ctime(&min_time.tv_sec));
+
 			for (i = 0; i < info.page_table_count; i++) {
 				if (!info.processes[pid].page_table[i].valid) {
 					continue;
 				}
 
-				time_diff = difftime(min_time.tv_sec, info.processes[pid].page_table[i].last_accessed.tv_sec);
-				time_diff += min_time.tv_nsec - info.processes[pid].page_table[i].last_accessed.tv_nsec;
-				if (time_diff > 0) {
+				if (smaller_than(info.processes[pid].page_table[i].last_accessed, min_time)) {
 					LOG_MSG("Candidate LUR page for vpn %d is %d", vpn, i);
 					lru_vpn = i;
 					min_time = info.processes[pid].page_table[i].last_accessed;
@@ -111,7 +110,7 @@ access_result access_memory(unsigned int pid, unsigned int virtual_address) {
 		result.physical_page_number = info.processes[pid].page_table[vpn].physical_page;
 	}
 
-	clock_gettime(CLOCK_MONOTONIC, &info.processes[pid].page_table[vpn].last_accessed);
+	time_now(&info.processes[pid].page_table[vpn].last_accessed);
 
 	result.virtual_page_number = vpn;
 	result.physical_address = info.free_list[result.physical_page_number].start_address + offset;

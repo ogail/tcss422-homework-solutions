@@ -37,7 +37,7 @@ typedef struct {
 typedef struct {
 	unsigned int physical_memory;
 	unsigned int virtual_memory;
-	unsigned int page_size_in_bits;
+	unsigned int page_size;
 	unsigned int free_list_count;
 	unsigned int free_list_index;
 	unsigned int virtual_page_number_bits_count;

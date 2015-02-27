@@ -10,13 +10,20 @@
 
 typedef int bool;
 typedef unsigned char byte;
-typedef struct timespec time_spec;
+typedef struct {
+	time_t time;
+	struct timespec sec;
+} time_spec;
 
 extern int allocated_chunks;
 
 /* GENERAL MANAGEMENT APIs */
 
 unsigned int get_bits(unsigned int n, unsigned int start, unsigned count);
+
+bool smaller_than(time_spec left, time_spec right);
+
+void time_now(time_spec * time_var);
 
 /* MEMORY MANAGEMENT APIs */
 

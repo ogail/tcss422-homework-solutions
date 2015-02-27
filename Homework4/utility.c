@@ -3,7 +3,6 @@
 #include <string.h>
 #include <pthread.h>
 #include <stdarg.h>
-#include <time.h>
 #include <math.h>
 #include "utility.h"
 
@@ -178,4 +177,20 @@ unsigned int get_bits(unsigned int n, unsigned int start, unsigned count) {
 	}
 
 	return result;
+}
+
+bool smaller_than(time_spec left, time_spec right) {
+	double time_diff, sec_diff, nano_diff;
+	time_diff = difftime(left.time, right.time);
+	sec_diff = difftime(left.sec.tv_sec, right.sec.tv_sec);
+	nano_diff = left.sec.tv_nsec - right.sec.tv_nsec;
+
+	return time_diff < 0 ||
+		   sec_diff < 0 ||
+		   nano_diff < 0;
+}
+
+void time_now(time_spec * time_var) {
+	clock_gettime(CLOCK_MONOTONIC, &time_var->sec);
+	time(&time_var->time);
 }
