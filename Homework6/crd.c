@@ -112,6 +112,7 @@ static int m_block_transfer(
 	unsigned count;
 	vir_bytes vir_offset = 0;
 	int r;
+	uLongf compression_length;
 	off_t position;
 	ssize_t total = 0;
 
@@ -151,9 +152,15 @@ static int m_block_transfer(
 			if (compressed_blocks[block_address] == NULL)
 				// The block doesn't exist, so we'll treat it as all 0's.
 				memset(uncompressed_data_buffer, 0, RAMDISK_BLOCK_SIZE);
-			else
+			else {
 				// Copy the block's data to the buffer.
 				memcpy(uncompressed_data_buffer, compressed_blocks[block_address], RAMDISK_BLOCK_SIZE);
+				// Uncompress the read data
+				r = uncompress(uncompressed_data_buffer, &compression_length, uncompressed_data_buffer, RAMDISK_BLOCK_SIZE);
+				if (Z_OK != r || compression_length > RAMDISK_BLOCK_SIZE)
+					panic("CRD: uncompression failed: %d", r);
+			}
+
 			// Transfer data from the ramdisk to another process.
 			r = sys_safecopyto(endpt, iov->iov_addr, vir_offset, (vir_bytes)(uncompressed_data_buffer + block_offset), count);
 		} else {
@@ -174,6 +181,10 @@ static int m_block_transfer(
 			free(compressed_blocks[block_address]);
 			// Allocate new storage for the block.
 			compressed_blocks[block_address] = malloc(RAMDISK_BLOCK_SIZE);
+			// Compress the buffer
+			r = compress(uncompressed_data_buffer, &compression_length, uncompressed_data_buffer, RAMDISK_BLOCK_SIZE);
+			if (Z_OK != r || compression_length > RAMDISK_BLOCK_SIZE)
+				panic("CRD: compression failed: %d", r);
 			// Copy the buffer's data to the block.
 			memcpy(compressed_blocks[block_address], uncompressed_data_buffer, RAMDISK_BLOCK_SIZE);
 
